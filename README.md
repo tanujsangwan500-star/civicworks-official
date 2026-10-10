@@ -96,3 +96,16 @@ git push -u origin main
 ## Security notes
 
 The public anon key is intended for browser use when RLS is enabled. Passwords are handled by Supabase Auth and are never stored in this application. Configure production email verification, password reset, rate limits, and backup policies in Supabase before launch.
+
+
+
+
+
+
+
+## Demo video lik
+https://drive.google.com/file/d/1a74f4PQoDsGjS-7JnuPA8Wq0AFDT9WZA/view?usp=sharing
+
+
+
+
