@@ -1,0 +1,12 @@
+create type public.app_role as enum ('admin', 'manager', 'citizen');
+create table public.teams (id uuid primary key default gen_random_uuid(), name text not null, manager_id uuid references auth.users(id));
+create table public.profiles (id uuid primary key references auth.users(id) on delete cascade, display_name text, role public.app_role not null default 'citizen', team_id uuid references public.teams(id));
+create table public.projects (id text primary key, title text not null, location text not null, department text not null, status text not null, progress int not null check (progress between 0 and 100), end_date date, team_id uuid references public.teams(id));
+alter table public.teams enable row level security; alter table public.profiles enable row level security; alter table public.projects enable row level security;
+create or replace function public.current_role() returns public.app_role language sql stable security definer set search_path = public as $$ select role from public.profiles where id = auth.uid() $$;
+create policy "public projects are readable" on public.projects for select using (true);
+create policy "admins manage projects" on public.projects for all using (public.current_role() = 'admin') with check (public.current_role() = 'admin');
+create policy "managers manage their team projects" on public.projects for update using (public.current_role() = 'manager' and team_id = (select team_id from public.profiles where id = auth.uid())) with check (team_id = (select team_id from public.profiles where id = auth.uid()));
+create policy "users read own profile" on public.profiles for select using (id = auth.uid());
+create policy "admins manage profiles" on public.profiles for all using (public.current_role() = 'admin') with check (public.current_role() = 'admin');
+create policy "team members read their team" on public.teams for select using (id = (select team_id from public.profiles where id = auth.uid()) or public.current_role() = 'admin');
